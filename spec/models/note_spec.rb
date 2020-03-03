@@ -15,8 +15,7 @@ RSpec.describe Note, type: :model do
   end
   describe 'search message for a term' do
     before do
-      user = FactoryBot.create(:user)
-      project = FactoryBot.create(:project, owner: user)
+      project = FactoryBot.create(:project)
 
       @note1 = FactoryBot.create(:note, message: 'This is the first note.',
                                         project: project)
