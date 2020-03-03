@@ -1,79 +1,51 @@
 require 'rails_helper'
 
 RSpec.describe Project, type: :model do
-  it 'is valid with user, name, description and due date' do
-    user = User.create(first_name: 'Gustavo',
-                       last_name: 'Carvalho',
-                       email: 'test@test.com',
-                       password: '123456')
-    project = Project.new(name: 'Projeto Pessoal',
-                          owner: user,
-                          due_on: "03/01/2020",
-                          description: 'Meu projeto')
+  it 'is valid with name, description and due date' do
+    project = FactoryBot.build(:project, name: 'Projeto Pessoal',
+                                         due_on: "03/01/2020",
+                                         description: 'Meu projeto')
 
     expect(project).to be_valid
   end
 
   it 'is valid without description and due date' do
-    user = User.create(first_name: 'Gustavo',
-                       last_name: 'Carvalho',
-                       email: 'test@test.com',
-                       password: '123456')
-
-    project = Project.new(name: 'Projeto Pessoal',
-                          owner: user,
-                          description: nil,
-                          due_on: nil)
+    project = FactoryBot.build(:project, description: nil,
+                                         due_on: nil)
 
     expect(project).to be_valid
   end
 
   it 'is invalid without name' do
-    user = User.create(first_name: 'Gustavo',
-                       last_name: 'Carvalho',
-                       email: 'test@test.com',
-                       password: '123456')
-
-    project = user.projects.new(name: nil)
+    project = FactoryBot.build(:project, name: nil)
     project.valid?
 
     expect(project.errors[:name]).to include("can't be blank")
   end
 
-  it 'returns true if a project is late' do
-    user = User.create(first_name: 'Gustavo',
-                       last_name: 'Carvalho',
-                       email: 'test@test.com',
-                       password: '123456')
+  describe 'late status' do
+    it 'is late when the due date is past today' do
+      project = FactoryBot.create(:project, :project_due_yesterday)
 
-    project = Project.new(name: 'Projeto Pessoal',
-                          owner: user,
-                          due_on: "03/01/2020",
-                          description: 'Meu projeto')
+      expect(project).to be_late
+    end
 
-    expect(project.late?).to eq true
+    it 'is on time when the due date is today' do
+      project = FactoryBot.create(:project, :project_due_today)
+
+      expect(project).not_to be_late
+    end
+
+    it 'is on time when the due date is in the future' do
+      project = FactoryBot.create(:project, :project_due_tomorrow)
+
+      expect(project).not_to be_late
+    end
   end
 
-  it 'return false if a project is not late' do
-    user = User.create(first_name: 'Gustavo',
-                       last_name: 'Carvalho',
-                       email: 'test@test.com',
-                       password: '123456')
-
-    project = Project.new(name: 'Projeto Pessoal',
-                          owner: user,
-                          due_on: "03/05/2020",
-                          description: 'Meu projeto')
-
-    expect(project.late?).to eq false
-  end
-
-  describe 'verify duplicate names' do
+  describe 'duplicate names' do
     it 'and does not allow duplicate project names per user' do
-      user = User.create(first_name: 'Gustavo',
-                         last_name: 'Carvalho',
-                         email: 'test@test.com',
-                         password: '123456')
+      user = FactoryBot.create(:user)
 
       user.projects.create(name: 'Comer burger')
       new_project = user.projects.build(name: 'Comer burger')
@@ -83,19 +55,21 @@ RSpec.describe Project, type: :model do
     end
 
     it 'and allows two users to share a project name' do
-      user = User.create(first_name: 'Thiago',
-                         last_name: 'Carvalho',
-                         email: 'test@test.com',
-                         password: '123456')
-      user.projects.create(name: 'Comer burger')
+      user = FactoryBot.create(:user)
+      FactoryBot.create(:project, owner: user, name: 'Comer burger')
 
-      other_user = User.create(first_name: 'Gustavo',
-                               last_name: 'Carvalho',
-                               email: 'test2@test.com',
-                               password: '123456')
-      other_project = other_user.projects.build(name: 'Comer burger')
+      other_user = FactoryBot.create(:user)
+      other_project = FactoryBot.create(:project, owner: other_user,
+                                                  name: 'Comer burger')
 
       expect(other_project).to be_valid
+    end
+  end
+
+  describe 'notes' do
+    it 'can have many notes' do
+      project = FactoryBot.create(:project, :with_notes)
+      expect(project.notes.length).to eq 5
     end
   end
 end
