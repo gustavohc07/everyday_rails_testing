@@ -5,11 +5,11 @@ FactoryBot.define do
     association :project
 
     trait :completed_task do
-      completed false
+      completed true
     end
 
     trait :not_completed_task do
-      completed true
+      completed false
     end
   end
 end
