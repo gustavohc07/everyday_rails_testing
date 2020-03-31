@@ -16,10 +16,13 @@ gem 'uglifier', '>= 1.3.0'
 
 group :development, :test do
   gem 'byebug', platforms: %i[mri mingw x64_mingw]
-  gem 'capybara', '~> 2.13.0'
   gem 'factory_bot_rails', '~> 4.10.0'
   gem 'rspec-rails'
   gem 'selenium-webdriver'
+end
+
+group :test do
+  gem 'capybara', '~> 2.15.2'
 end
 
 group :development do
